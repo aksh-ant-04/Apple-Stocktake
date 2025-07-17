@@ -188,10 +188,45 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
       
       
 let startY = margin + 25;
+let customerInfoEndY = startY;
 
-// Updated: We'll handle all header rendering (including logo, title, and customer info)
-// inside didDrawPage so it's consistent across all pages.
-
+      
+      // Add customer info only if showCustomerInfo is true
+      if (showCustomerInfo) {
+        autoTable(doc, {
+  startY: startY,
+  head: [],
+  body: [
+    ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
+    ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
+    ['Outlet Address', customerInfo.outletAddress],
+    ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()]
+  ],
+  theme: 'grid',
+  styles: {
+    fontSize: 8,
+    cellPadding: 2,
+  },
+  columnStyles: {
+    0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    1: { width: useLandscape ? 70 : 45 },
+    2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    3: { width: useLandscape ? 70 : 45 },
+    4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    5: { width: useLandscape ? 45 : 30 },
+  },
+  didParseCell: (data) => {
+    if (data.row.index === 2) {
+      if (data.column.index === 1) {
+        data.cell.colSpan = useLandscape ? 5 : 3;
+      } else if (data.column.index > 1) {
+        data.cell.text = [];
+      }
+    }
+  },
+});
+customerInfoEndY = doc.lastAutoTable?.finalY || startY;
+startY = customerInfoEndY + 10;
       }
 
       // Define column styles based on report type
@@ -318,73 +353,43 @@ let startY = margin + 25;
             }
           }
         },
-        
-didDrawPage: (data) => {
-  // Header rendering for all pages (including page 1)
-  if (reportTitle === 'All_Product_Report' || reportTitle === 'Detailed_Scan_Report' || reportTitle === 'Interim_SKU_Area_Report') {
-    const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
-
-    // Add logos and title
-    if (customerInfo.logo) {
-      doc.addImage(customerInfo.logo, 'JPEG', margin, margin, 15, 15);
-    }
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 0, 0);
-    doc.text('acrebis', pageWidth - margin - 5, margin + 10, { align: 'right' });
-
-    doc.setTextColor(0);
-    doc.setFontSize(16);
-    doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
-
-    // Customer info block
-    if (showCustomerInfo) {
-      const customerInfoTable = autoTable(doc, {
-        startY: margin + 25,
-        head: [],
-        body: [
-          ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
-          ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
-          ['Outlet Address', customerInfo.outletAddress],
-          ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
-        ],
-        theme: 'grid',
-        styles: {
-          fontSize: 7,
-          cellPadding: 1.5,
-        },
-        columnStyles: {
-          0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-          1: { width: useLandscape ? 60 : 40 },
-          2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-          3: { width: useLandscape ? 60 : 40 },
-          4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-          5: { width: useLandscape ? 40 : 25 },
-        },
-        didParseCell: (data) => {
-          if (data.row.index === 2) {
-            if (data.column.index === 1) {
-              data.cell.colSpan = useLandscape ? 5 : 3;
-            } else if (data.column.index > 1) {
-              data.cell.text = [];
-            }
-          }
-        }
-      });
-    }
-  }
-
-  // Footer remains the same
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  const now = new Date();
-  const dateStr = now.toLocaleDateString();
-  const timeStr = now.toLocaleTimeString();
-  const pageNumber = `Page ${doc.internal.getCurrentPageInfo().pageNumber}`;
-  doc.text(pageNumber, pageWidth/2, pageHeight - 10, { align: 'center' });
-  doc.text(`Generated on ${dateStr} at ${timeStr}`, pageWidth/2, pageHeight - 5, { align: 'center' });
-},
-,
+        didDrawPage: (data) => {
+          // Add header on every page for specific reports and adjust table position
+          if (reportTitle === 'All_Product_Report' || reportTitle === 'Detailed_Scan_Report' || reportTitle === 'Interim_SKU_Area_Report') {
+            // Only add header if this is not the first page (first page already has the header)
+            if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+              // Add logos and title
+              if (customerInfo.logo) {
+                doc.addImage(customerInfo.logo, 'JPEG', margin, margin, 15, 15);
+              }
+              
+              // Move acrebis text further to the right
+              doc.setFontSize(20);
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(255, 0, 0);
+              doc.text('acrebis', pageWidth - margin - 5, margin + 10, { align: 'right' });
+              
+              doc.setTextColor(0);
+              doc.setFontSize(16);
+              doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
+              
+              // Add compact customer info table on subsequent pages and calculate its height
+              let customerInfoEndY = margin + 25;
+              if (showCustomerInfo) {
+                const customerInfoTable = autoTable(doc, {
+                  startY: margin + 25,
+                  head: [],
+                  body: [
+                    ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
+                    ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
+                    ['Outlet Address', customerInfo.outletAddress],
+                    ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
+                  ],
+                  theme: 'grid',
+                  styles: {
+                    fontSize: 7,
+                    cellPadding: 1.5,
+                  },
                   columnStyles: {
                     0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
                     1: { width: useLandscape ? 60 : 40 },
@@ -458,7 +463,7 @@ didDrawPage: (data) => {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF file. Please try again with a smaller dataset.');
     }
-  };
+  };a
 
   return (
     <div className="flex space-x-2">
