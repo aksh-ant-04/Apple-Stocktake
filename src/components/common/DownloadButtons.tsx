@@ -170,6 +170,7 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 10;
+      const headerHeight = showCustomerInfo ? 60 : 35; // Adjust as needed
       
       // Add logos and title
       if (customerInfo.logo) {
@@ -279,7 +280,8 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
 
       // Add report data with conditional row styling
       autoTable(doc, {
-        startY: startY,
+        startY: margin + headerHeight, // For the first page
+        margin: { top: margin + headerHeight }, // For all pages
         head: [columns.map(col => col.header)],
         body: pdfData,
         theme: 'grid',
@@ -354,81 +356,57 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
           }
         },
         didDrawPage: (data) => {
-          // Add header on every page for specific reports and adjust table position
-          if (reportTitle === 'All_Product_Report' || reportTitle === 'Detailed_Scan_Report' || reportTitle === 'Interim_SKU_Area_Report') {
-            // Only add header if this is not the first page (first page already has the header)
-            if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-              // Add logos and title
-              if (customerInfo.logo) {
-                doc.addImage(customerInfo.logo, 'JPEG', margin, margin, 15, 15);
-              }
-              
-              // Move acrebis text further to the right
-              doc.setFontSize(20);
-              doc.setFont('helvetica', 'bold');
-              doc.setTextColor(255, 0, 0);
-              doc.text('acrebis', pageWidth - margin - 5, margin + 10, { align: 'right' });
-              
-              doc.setTextColor(0);
-              doc.setFontSize(16);
-              doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
-              
-              // Add compact customer info table on subsequent pages and calculate its height
-              let customerInfoEndY = margin + 25;
-              if (showCustomerInfo) {
-                const customerInfoTable = autoTable(doc, {
-                  startY: margin + 25,
-                  head: [],
-                  body: [
-                    ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
-                    ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
-                    ['Outlet Address', customerInfo.outletAddress],
-                    ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
-                  ],
-                  theme: 'grid',
-                  styles: {
-                    fontSize: 7,
-                    cellPadding: 1.5,
-                  },
-                  columnStyles: {
-                    0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                    1: { width: useLandscape ? 60 : 40 },
-                    2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                    3: { width: useLandscape ? 60 : 40 },
-                    4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                    5: { width: useLandscape ? 40 : 25 },
-                  },
-                  didParseCell: (data) => {
-                    // Special handling for Outlet Address row (row index 2)
-                    if (data.row.index === 2) {
-                      // Make Outlet Address span all columns
-                      if (data.column.index === 1) {
-                        data.cell.colSpan = useLandscape ? 5 : 3;
-                      } else if (data.column.index > 1) {
-                        // Hide other cells in the Outlet Address row
-                        data.cell.text = [];
-                      }
-                    }
-                  },
-                });
-                
-                // Get the end position of the customer info table
-                customerInfoEndY = doc.lastAutoTable?.finalY || (margin + 25);
-              }
-              
-              // Adjust the main table's startY to avoid overlap
-              // Add some spacing after the customer info table
-              const newStartY = customerInfoEndY + 10;
-              
-              // Update the table's startY if it would overlap
-              if (data.table && data.table.startPageNumber === doc.internal.getCurrentPageInfo().pageNumber) {
-                // Only adjust if this is the start of the table on this page
-                data.settings.startY = Math.max(data.settings.startY, newStartY);
-              }
-            }
+          // Draw your header at (margin, margin)
+          if (customerInfo.logo) {
+            doc.addImage(customerInfo.logo, 'JPEG', margin, margin, 15, 15);
           }
-          
-          // Add footer
+          doc.setFontSize(20);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(255, 0, 0);
+          doc.text('acrebis', pageWidth - margin - 5, margin + 10, { align: 'right' });
+
+          doc.setTextColor(0);
+          doc.setFontSize(16);
+          doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
+
+          let startY = margin + 25;
+
+          if (showCustomerInfo) {
+            autoTable(doc, {
+              startY: startY,
+              head: [],
+              body: [
+                ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
+                ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
+                ['Outlet Address', customerInfo.outletAddress],
+                ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
+              ],
+              theme: 'grid',
+              styles: {
+                fontSize: 7,
+                cellPadding: 1.5,
+              },
+              columnStyles: {
+                0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                1: { width: 60 },
+                2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                3: { width: 60 },
+                4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                5: { width: 40 },
+              },
+              didParseCell: (data) => {
+                if (data.row.index === 2) {
+                  if (data.column.index === 1) {
+                    data.cell.colSpan = 5;
+                  } else if (data.column.index > 1) {
+                    data.cell.text = [];
+                  }
+                }
+              },
+            });
+          }
+
+          // Footer
           doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
           
