@@ -368,7 +368,7 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
               theme: 'grid',
               styles: {
                 fontSize: 8,
-                cellPadding: 1.75,
+                cellPadding: 1.5,
               },
               columnStyles: {
                 0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
