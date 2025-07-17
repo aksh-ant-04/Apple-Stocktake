@@ -150,6 +150,43 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
       )}
+
+      {/* Data Summary Segment */}
+      <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Data Summary</h2>
+        <div className="flex flex-wrap gap-4">
+          {/* Current Event ID */}
+          <div className="flex-1 min-w-[180px] bg-blue-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Current Event ID</span>
+            <span className="text-2xl font-bold text-blue-700">{state.customerInfo.eventId || '-'}</span>
+          </div>
+          {/* Total Locations */}
+          <div className="flex-1 min-w-[180px] bg-blue-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Total Locations</span>
+            <span className="text-2xl font-bold text-blue-700">{state.customerInfo.totalStocktakeLocation || 0}</span>
+          </div>
+          {/* Item Master Records */}
+          <div className="flex-1 min-w-[180px] bg-green-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Item Master Records</span>
+            <span className="text-2xl font-bold text-green-600">{state.itemMaster.length}</span>
+          </div>
+          {/* Scan Data Records */}
+          <div className="flex-1 min-w-[180px] bg-purple-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Scan Data Records</span>
+            <span className="text-2xl font-bold text-purple-600">{state.scanData.length}</span>
+          </div>
+          {/* Completed Locations */}
+          <div className="flex-1 min-w-[180px] bg-orange-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Completed Locations</span>
+            <span className="text-2xl font-bold text-orange-600">{state.scanData.length > 0 ? [...new Set(state.scanData.map(item => item.SHELF))].filter(Boolean).length : 0}</span>
+          </div>
+          {/* Total Quantity */}
+          <div className="flex-1 min-w-[180px] bg-teal-50 rounded-xl p-6 flex flex-col justify-center items-start">
+            <span className="text-md text-gray-700 mb-1">Total Quantity</span>
+            <span className="text-2xl font-bold text-teal-600">{state.scanData.reduce((sum, item) => sum + (Number(item.QTY ?? item.QUANTITY) || 0), 0)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
