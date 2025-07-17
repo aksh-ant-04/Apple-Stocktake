@@ -353,7 +353,41 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
           doc.setFontSize(16);
           doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
 
-          // Do NOT draw the customer info table again here (prevents double rendering/overlap)
+          // Only draw the compact customer info table on pages after the first
+          if (showCustomerInfo && doc.internal.getCurrentPageInfo().pageNumber > 1) {
+            autoTable(doc, {
+              startY: margin + 25,
+              head: [],
+              body: [
+                ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
+                ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
+                ['Outlet Address', customerInfo.outletAddress],
+                ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
+              ],
+              theme: 'grid',
+              styles: {
+                fontSize: 7,
+                cellPadding: 1.5,
+              },
+              columnStyles: {
+                0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                1: { width: 60 },
+                2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                3: { width: 60 },
+                4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
+                5: { width: 40 },
+              },
+              didParseCell: (data) => {
+                if (data.row.index === 2) {
+                  if (data.column.index === 1) {
+                    data.cell.colSpan = 5;
+                  } else if (data.column.index > 1) {
+                    data.cell.text = [];
+                  }
+                }
+              },
+            });
+          }
 
           // Footer
           doc.setFontSize(8);
