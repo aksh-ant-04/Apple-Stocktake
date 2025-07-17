@@ -18,7 +18,14 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto relative">
+      {/* Reset Dashboard button at top right */}
+      <button
+        onClick={() => window.location.reload()}
+        className="absolute top-0 right-0 mt-4 mr-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow hover:bg-red-700 transition-colors z-10"
+      >
+        Reset Dashboard
+      </button>
       <motion.h1 
         className="text-3xl font-bold mb-6 text-gray-800"
         initial={{ opacity: 0, y: -20 }}
