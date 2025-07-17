@@ -363,11 +363,12 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
                 ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
                 ['Outlet Address', customerInfo.outletAddress],
                 ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
+                ['Total Stocktake Location', customerInfo.totalStocktakeLocation.toString(), '', ''],
               ],
               theme: 'grid',
               styles: {
-                fontSize: 7,
-                cellPadding: 1.5,
+                fontSize: 8,
+                cellPadding: 2,
               },
               columnStyles: {
                 0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
