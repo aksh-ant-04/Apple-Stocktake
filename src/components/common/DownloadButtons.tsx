@@ -187,12 +187,11 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
       doc.setFontSize(16);
       doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
       
-      let startY = margin + 25;
-      
-      // Add customer info only if showCustomerInfo is true
+      // Draw customer info table and get its end Y position
+      let mainTableStartY = margin + headerHeight;
       if (showCustomerInfo) {
         autoTable(doc, {
-          startY: startY,
+          startY: margin + 25,
           head: [],
           body: [
             ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
@@ -215,23 +214,21 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
             5: { width: useLandscape ? 45 : 30 },
           },
           didParseCell: (data) => {
-            // Special handling for Outlet Address row (row index 2)
             if (data.row.index === 2) {
-              // Make Outlet Address span all columns
               if (data.column.index === 1) {
                 data.cell.colSpan = useLandscape ? 5 : 3;
               } else if (data.column.index > 1) {
-                // Hide other cells in the Outlet Address row
                 data.cell.text = [];
               }
             }
           },
         });
-        startY = (doc.lastAutoTable?.finalY || startY) + 10;
+        // Get the Y position after the customer info table
+        mainTableStartY = (doc.lastAutoTable?.finalY || (margin + headerHeight)) + 10;
       }
 
       // Define column styles based on report type
-      const columnStyles = {};
+      const columnStyles: { [key: number]: any } = {};
       if (reportTitle === 'All_Product_Report') {
         columnStyles[0] = { width: 30 }; // TAG DESCRIPTION
         columnStyles[1] = { width: 15 }; // TAG
@@ -263,11 +260,9 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
       // Prepare data for PDF with special handling for SHELF column
       const pdfData = reportData.map(row => {
         return columns.map(col => {
-          // Special handling for SHELF column to show subtotal and grand total text
           if (col.accessor === 'SHELF') {
             const isSubtotal = row.TAG_SUB_AREA?.startsWith('Sub total of SHELF');
             const isGrandTotal = row.TAG_SUB_AREA === 'GRAND TOTAL' || row.UPC === 'GRAND TOTAL' || row.TAG === 'GRAND TOTAL';
-            
             if (isSubtotal) {
               return row.TAG_SUB_AREA;
             } else if (isGrandTotal) {
@@ -280,8 +275,8 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
 
       // Add report data with conditional row styling
       autoTable(doc, {
-        startY: margin + headerHeight, // For the first page
-        margin: { top: margin + headerHeight }, // For all pages
+        startY: mainTableStartY, // For the first page
+        margin: { top: margin + headerHeight }, // For subsequent pages
         head: [columns.map(col => col.header)],
         body: pdfData,
         theme: 'grid',
@@ -300,7 +295,6 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
         },
         columnStyles: columnStyles,
         didParseCell: (data) => {
-          // Set header alignment - center align QTY columns, left align others
           if (data.section === 'head') {
             const columnHeader = columns[data.column.index]?.header;
             if (columnHeader === 'QTY' || columnHeader === 'QUANTITY' || columnHeader === 'VERIFIED QTY' || columnHeader === 'AUDITED QTY') {
@@ -309,46 +303,36 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
               data.cell.styles.halign = 'left';
             }
           }
-          
-          // Set body cell alignment and styling
           if (data.section === 'body') {
             const columnHeader = columns[data.column.index]?.header;
             if (columnHeader === 'QTY' || columnHeader === 'QUANTITY' || columnHeader === 'VERIFIED QTY' || columnHeader === 'AUDITED QTY') {
               data.cell.styles.halign = 'center';
             }
-            
             const rowIndex = data.row.index;
             if (rowIndex < reportData.length) {
               const row = reportData[rowIndex];
-              
-              // Check if this is a subtotal, shelf total, tag total, or grand total row
               const isSubtotal = row.TAG_SUB_AREA?.startsWith('Sub total of SHELF');
               const isGrandTotal = row.TAG_SUB_AREA === 'GRAND TOTAL' || row.UPC === 'GRAND TOTAL' || row.TAG === 'GRAND TOTAL';
               const isShelfTotal = row.DESCRIPTION?.includes('SHELF') && row.DESCRIPTION?.includes('TOTAL');
               const isTagTotal = row.DESCRIPTION?.includes('TAG') && row.DESCRIPTION?.includes('TOTAL') && !isShelfTotal;
-              
               if (isShelfTotal) {
-                // Yellow highlighting for shelf total rows
-                data.cell.styles.fillColor = [254, 243, 199]; // Light yellow
-                data.cell.styles.textColor = [146, 64, 14]; // Dark yellow/orange text
+                data.cell.styles.fillColor = [254, 243, 199];
+                data.cell.styles.textColor = [146, 64, 14];
                 data.cell.styles.fontStyle = 'bold';
                 data.cell.styles.fontSize = 9;
               } else if (isTagTotal) {
-                // Orange highlighting for tag total rows
-                data.cell.styles.fillColor = [254, 215, 170]; // Light orange
-                data.cell.styles.textColor = [154, 52, 18]; // Dark orange text
+                data.cell.styles.fillColor = [254, 215, 170];
+                data.cell.styles.textColor = [154, 52, 18];
                 data.cell.styles.fontStyle = 'bold';
                 data.cell.styles.fontSize = 10;
               } else if (isSubtotal) {
-                // Blue highlighting for subtotal rows
-                data.cell.styles.fillColor = [219, 234, 254]; // Light blue
-                data.cell.styles.textColor = [29, 78, 216]; // Blue text
+                data.cell.styles.fillColor = [219, 234, 254];
+                data.cell.styles.textColor = [29, 78, 216];
                 data.cell.styles.fontStyle = 'bold';
                 data.cell.styles.fontSize = 9;
               } else if (isGrandTotal) {
-                // Green highlighting for grand total row
-                data.cell.styles.fillColor = [198, 239, 206]; // Light green
-                data.cell.styles.textColor = [22, 101, 52]; // Dark green text
+                data.cell.styles.fillColor = [198, 239, 206];
+                data.cell.styles.textColor = [22, 101, 52];
                 data.cell.styles.fontStyle = 'bold';
                 data.cell.styles.fontSize = 10;
               }
@@ -369,66 +353,23 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
           doc.setFontSize(16);
           doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
 
-          let startY = margin + 25;
-
-          if (showCustomerInfo) {
-            autoTable(doc, {
-              startY: startY,
-              head: [],
-              body: [
-                ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
-                ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
-                ['Outlet Address', customerInfo.outletAddress],
-                ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
-              ],
-              theme: 'grid',
-              styles: {
-                fontSize: 7,
-                cellPadding: 1.5,
-              },
-              columnStyles: {
-                0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                1: { width: 60 },
-                2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                3: { width: 60 },
-                4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 25 },
-                5: { width: 40 },
-              },
-              didParseCell: (data) => {
-                if (data.row.index === 2) {
-                  if (data.column.index === 1) {
-                    data.cell.colSpan = 5;
-                  } else if (data.column.index > 1) {
-                    data.cell.text = [];
-                  }
-                }
-              },
-            });
-          }
+          // Do NOT draw the customer info table again here (prevents double rendering/overlap)
 
           // Footer
           doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
-          
           const now = new Date();
           const dateStr = now.toLocaleDateString();
           const timeStr = now.toLocaleTimeString();
           const pageNumber = `Page ${doc.internal.getCurrentPageInfo().pageNumber}`;
-          
           doc.text(pageNumber, pageWidth/2, pageHeight - 10, { align: 'center' });
           doc.text(`Generated on ${dateStr} at ${timeStr}`, pageWidth/2, pageHeight - 5, { align: 'center' });
         },
-        // Ensure proper spacing for tables that start on pages with headers
         didDrawCell: (data) => {
-          // Additional check to prevent overlap on subsequent pages
           if (data.section === 'head' && 
               (reportTitle === 'All_Product_Report' || reportTitle === 'Detailed_Scan_Report' || reportTitle === 'Interim_SKU_Area_Report') &&
               doc.internal.getCurrentPageInfo().pageNumber > 1) {
-            
-            // Calculate minimum Y position to avoid header overlap
             const minY = showCustomerInfo ? margin + 80 : margin + 40;
-            
-            // If the table header would overlap with our custom header, move it down
             if (data.cell.y < minY) {
               data.cell.y = minY;
             }
