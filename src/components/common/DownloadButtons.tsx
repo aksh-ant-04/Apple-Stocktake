@@ -186,47 +186,47 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({
       doc.setFontSize(16);
       doc.text(reportTitle.replace(/_/g, ' ').toUpperCase(), pageWidth/2, margin + 15, { align: 'center' });
       
-      let startY = margin + 25;
+      
+let startY = margin + 25;
+let customerInfoEndY = startY;
+
       
       // Add customer info only if showCustomerInfo is true
       if (showCustomerInfo) {
         autoTable(doc, {
-          startY: startY,
-          head: [],
-          body: [
-            ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
-            ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
-            ['Outlet Address', customerInfo.outletAddress],
-            ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()],
-            ['Total Stocktake Location', customerInfo.totalStocktakeLocation.toString(), '', ''],
-          ],
-          theme: 'grid',
-          styles: {
-            fontSize: 8,
-            cellPadding: 2,
-          },
-          columnStyles: {
-            0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
-            1: { width: useLandscape ? 70 : 45 },
-            2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
-            3: { width: useLandscape ? 70 : 45 },
-            4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
-            5: { width: useLandscape ? 45 : 30 },
-          },
-          didParseCell: (data) => {
-            // Special handling for Outlet Address row (row index 2)
-            if (data.row.index === 2) {
-              // Make Outlet Address span all columns
-              if (data.column.index === 1) {
-                data.cell.colSpan = useLandscape ? 5 : 3;
-              } else if (data.column.index > 1) {
-                // Hide other cells in the Outlet Address row
-                data.cell.text = [];
-              }
-            }
-          },
-        });
-        startY = (doc.lastAutoTable?.finalY || startY) + 10;
+  startY: startY,
+  head: [],
+  body: [
+    ['Event ID', customerInfo.eventId, 'Date of Stock Take', customerInfo.dateOfStockTake],
+    ['Customer Name', customerInfo.customerName, 'Time of Stock Take', customerInfo.timeOfStockTake],
+    ['Outlet Address', customerInfo.outletAddress],
+    ['ACREBIS Supervisor', customerInfo.acrebisSupervisor, 'Customer Supervisor', customerInfo.customerSupervisor, 'Total Stocktake Location', customerInfo.totalStocktakeLocation.toString()]
+  ],
+  theme: 'grid',
+  styles: {
+    fontSize: 8,
+    cellPadding: 2,
+  },
+  columnStyles: {
+    0: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    1: { width: useLandscape ? 70 : 45 },
+    2: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    3: { width: useLandscape ? 70 : 45 },
+    4: { fontStyle: 'bold', fillColor: [240, 240, 240], width: 30 },
+    5: { width: useLandscape ? 45 : 30 },
+  },
+  didParseCell: (data) => {
+    if (data.row.index === 2) {
+      if (data.column.index === 1) {
+        data.cell.colSpan = useLandscape ? 5 : 3;
+      } else if (data.column.index > 1) {
+        data.cell.text = [];
+      }
+    }
+  },
+});
+customerInfoEndY = doc.lastAutoTable?.finalY || startY;
+startY = customerInfoEndY + 10;
       }
 
       // Define column styles based on report type
