@@ -154,6 +154,28 @@ const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label }) => {
     }
   };
 
+  // Add this handler to reset the upload state and clear context data
+  const handleReset = () => {
+    setIsSuccess(false);
+    setError(null);
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    // Clear the corresponding data in context
+    switch (fileType) {
+      case 'tagMaster':
+        setTagMaster([]);
+        break;
+      case 'itemMaster':
+        setItemMaster([]);
+        break;
+      case 'scanData':
+        setScanData([]);
+        break;
+    }
+  };
+
   return (
     <motion.div 
       className="flex flex-col items-center"
@@ -198,7 +220,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label }) => {
             </>
           )}
         </div>
-        
         <div className="text-center">
           <span className="block font-medium">
             {isSuccess
@@ -216,6 +237,16 @@ const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label }) => {
               ? 'Processing...'
               : 'Click to browse'}
           </span>
+          {/* Show Reset button when upload is successful */}
+          {isSuccess && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="mt-3 px-3 py-1 text-sm font-medium text-orange-700 bg-orange-100 rounded hover:bg-orange-200 transition-colors"
+            >
+              Reset
+            </button>
+          )}
         </div>
       </button>
     </motion.div>
