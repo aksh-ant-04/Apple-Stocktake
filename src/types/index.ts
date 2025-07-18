@@ -17,9 +17,6 @@ export interface SavedEvent {
   eventId: string;
   customerInfo: CustomerInfo;
   savedAt: string;
-  tagMaster?: TagMaster[];
-  itemMaster?: ItemMaster[];
-  scanData?: ScanData[];
 }
 
 // Data Sources
