@@ -8,7 +8,7 @@ import CustomerInfoForm from '../components/common/CustomerInfoForm';
 import FileUploader from '../components/common/FileUploader';
 
 const Dashboard: React.FC = () => {
-  const { state, resetData, setActiveReport } = useAppContext();
+  const { state, resetData, setActiveReport, resetSignal } = useAppContext();
   const { isDataLoaded } = state;
 
   const handleReset = () => {
@@ -57,14 +57,17 @@ const Dashboard: React.FC = () => {
           <FileUploader 
             fileType="tagMaster" 
             label="Upload ITEM MASTER" 
+            resetSignal={resetSignal}
           />
           <FileUploader 
             fileType="itemMaster" 
             label="Upload TAG MASTER" 
+            resetSignal={resetSignal}
           />
           <FileUploader 
             fileType="scanData" 
             label="Upload SCAN DATA" 
+            resetSignal={resetSignal}
           />
         </div>
         <div className="mt-4 flex justify-end">

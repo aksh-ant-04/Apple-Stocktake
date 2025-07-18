@@ -8,15 +8,26 @@ import { TagMaster, ItemMaster, ScanData } from '../../types';
 interface FileUploaderProps {
   fileType: 'tagMaster' | 'itemMaster' | 'scanData';
   label: string;
+  resetSignal?: number; // Add this line
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label, resetSignal }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { setTagMaster, setItemMaster, setScanData } = useAppContext();
+
+  // Add this effect to reset local state when resetSignal changes
+  React.useEffect(() => {
+    setIsUploading(false);
+    setIsSuccess(false);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [resetSignal]);
 
   const handleClick = () => {
     if (fileInputRef.current) {

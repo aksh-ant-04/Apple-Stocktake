@@ -71,6 +71,7 @@ const AppContext = createContext<{
   loadEvent: (eventId: string) => void;
   clearCustomerInfo: () => void;
   resetData: () => void;
+  resetSignal: number; // Add this line
 }>({
   state: initialState,
   savedEvents: [],
@@ -86,12 +87,14 @@ const AppContext = createContext<{
   loadEvent: () => {},
   clearCustomerInfo: () => {},
   resetData: () => {},
+  resetSignal: 0,
 });
 
 // Provider component
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(initialState);
   const [savedEvents, setSavedEvents] = useState<SavedEvent[]>(loadSavedEvents());
+  const [resetSignal, setResetSignal] = useState(0); // Add this line
 
   const updateCustomerInfo = (info: Partial<CustomerInfo>) => {
     setState(prevState => ({
@@ -217,6 +220,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       selectedTagSubArea: null,
       selectedTags: [],
     }));
+    setResetSignal(sig => sig + 1); // Increment resetSignal
   };
 
   return (
@@ -236,6 +240,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loadEvent,
         clearCustomerInfo,
         resetData,
+        resetSignal, // Add this line
       }}
     >
       {children}
