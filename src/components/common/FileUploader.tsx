@@ -253,7 +253,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label, resetSigna
             <button
               type="button"
               onClick={handleReset}
-              className="mt-3 px-3 py-1 text-sm font-medium text-orange-700 bg-orange-100 rounded hover:bg-orange-200 transition-colors"
+              className="mt-2 px-3 py-1 text-sm font-medium text-orange-700 bg-orange-100 rounded hover:bg-orange-200 transition-colors"
             >
               Reset
             </button>
