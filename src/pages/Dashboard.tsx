@@ -58,16 +58,19 @@ const Dashboard: React.FC = () => {
             fileType="tagMaster" 
             label="Upload ITEM MASTER" 
             resetSignal={resetSignal}
+            data={state.tagMaster}
           />
           <FileUploader 
             fileType="itemMaster" 
             label="Upload TAG MASTER" 
             resetSignal={resetSignal}
+            data={state.itemMaster}
           />
           <FileUploader 
             fileType="scanData" 
             label="Upload SCAN DATA" 
             resetSignal={resetSignal}
+            data={state.scanData}
           />
         </div>
         <div className="mt-4 flex justify-end">

@@ -8,10 +8,11 @@ import { TagMaster, ItemMaster, ScanData } from '../../types';
 interface FileUploaderProps {
   fileType: 'tagMaster' | 'itemMaster' | 'scanData';
   label: string;
-  resetSignal?: number; // Add this line
+  resetSignal?: number;
+  data: any[];
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label, resetSignal }) => {
+const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label, resetSignal, data }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ fileType, label, resetSigna
       fileInputRef.current.value = '';
     }
   }, [resetSignal]);
+
+  // Add this effect to update isSuccess based on data prop
+  React.useEffect(() => {
+    setIsSuccess(Array.isArray(data) && data.length > 0);
+  }, [data]);
 
   const handleClick = () => {
     if (fileInputRef.current) {
