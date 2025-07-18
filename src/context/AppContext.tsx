@@ -115,6 +115,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       eventId: eventId.trim(),
       customerInfo: { ...state.customerInfo, eventId: eventId.trim() },
       savedAt: new Date().toISOString(),
+      tagMaster: state.tagMaster,
+      itemMaster: state.itemMaster,
+      scanData: state.scanData,
     };
 
     const updatedEvents = savedEvents.filter(event => event.eventId !== eventId.trim());
@@ -145,6 +148,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setState(prevState => ({
         ...prevState,
         customerInfo: event.customerInfo,
+        tagMaster: event.tagMaster || [],
+        itemMaster: event.itemMaster || [],
+        scanData: event.scanData || [],
+        isDataLoaded:
+          (event.tagMaster?.length || 0) > 0 &&
+          (event.itemMaster?.length || 0) > 0 &&
+          (event.scanData?.length || 0) > 0,
       }));
     }
   };
@@ -156,6 +166,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   };
 
+  // Helper to update input data for the current event in localStorage
+  const updateCurrentEventInputData = (partial: Partial<Pick<SavedEvent, 'tagMaster' | 'itemMaster' | 'scanData'>>) => {
+    const eventId = state.customerInfo.eventId?.trim();
+    if (!eventId) return;
+    const updatedEvents = savedEvents.map(event => {
+      if (event.eventId === eventId) {
+        return { ...event, ...partial };
+      }
+      return event;
+    });
+    setSavedEvents(updatedEvents);
+    saveSavedEvents(updatedEvents);
+  };
+
   const setTagMaster = (data: TagMaster[]) => {
     setState(prevState => ({
       ...prevState,
@@ -165,6 +189,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         prevState.itemMaster.length > 0 && 
         prevState.scanData.length > 0,
     }));
+    updateCurrentEventInputData({ tagMaster: data });
   };
 
   const setItemMaster = (data: ItemMaster[]) => {
@@ -176,6 +201,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         data.length > 0 && 
         prevState.scanData.length > 0,
     }));
+    updateCurrentEventInputData({ itemMaster: data });
   };
 
   const setScanData = (data: ScanData[]) => {
@@ -187,6 +213,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         prevState.itemMaster.length > 0 && 
         data.length > 0,
     }));
+    updateCurrentEventInputData({ scanData: data });
   };
 
   const setActiveReport = (report: string) => {
