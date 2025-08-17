@@ -770,9 +770,20 @@ export const generateTagSummaryReport = (
     // Display TAG as just the number (no "TAG" suffix)
     const displayTag = originalTag;
     
-    // Display SHELF: show 1 for tags >= 7000, original shelf value for tags < 7000
+    // Display SHELF: for tags 1001-1006 use TAG MASTER shelf value, for tags ≥ 7000 show as 1
     const tagNum = parseInt(originalTag) || 0;
-    const displayShelf = tagNum >= 7000 ? '1' : shelf;
+    let displayShelf;
+    
+    if (tagNum >= 1001 && tagNum <= 1006) {
+      // For tags 1001-1006, use the SHELF value from TAG MASTER file
+      displayShelf = shelf;
+    } else if (tagNum >= 7000) {
+      // For tags ≥ 7000, show shelf as 1
+      displayShelf = '1';
+    } else {
+      // For other tags, use original shelf value
+      displayShelf = shelf;
+    }
     
     // Get TAG record for description (lookup by original TAG)
     const itemRecord = itemMasterIndex.get(originalTag);
