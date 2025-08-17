@@ -767,11 +767,12 @@ export const generateTagSummaryReport = (
     const shelf = extractShelfFromScanData(scanItem);
     const quantity = extractQuantityFromScanData(scanItem);
     
-    // Display TAG as "7271 TAG" format
-    const displayTag = `${originalTag} `;
+    // Display TAG as just the number (no "TAG" suffix)
+    const displayTag = originalTag;
     
-    // Display SHELF as "Shelf 1" format (simplified shelf number)
-    const displayShelf = `Shelf ${1}`;
+    // Display SHELF: show 1 for tags >= 7000, original shelf value for tags < 7000
+    const tagNum = parseInt(originalTag) || 0;
+    const displayShelf = tagNum >= 7000 ? '1' : shelf;
     
     // Get TAG record for description (lookup by original TAG)
     const itemRecord = itemMasterIndex.get(originalTag);
