@@ -767,18 +767,17 @@ export const generateTagSummaryReport = (
     const shelf = extractShelfFromScanData(scanItem);
     const quantity = extractQuantityFromScanData(scanItem);
     
-    // Parse TAG and SHELF for complex tags like 7818 -> TAG: 7000, SHELF: 818
-    const { parsedTag, parsedShelf } = parseTagAndShelf(originalTag);
+    // Display TAG as "7271 TAG" format
+    const displayTag = `${originalTag} TAG`;
     
-    // Use parsed values if available, otherwise use original values
-    const finalTag = parsedTag;
-    const finalShelf = parsedShelf || shelf;
+    // Display SHELF as "Shelf 1" format (simplified shelf number)
+    const displayShelf = `Shelf ${parseInt(shelf) || 1}`;
     
     // Get TAG record for description (lookup by original TAG)
     const itemRecord = itemMasterIndex.get(originalTag);
     
     // Create unique key for aggregation: TAG + SHELF
-    const aggregationKey = `${finalTag}_${finalShelf}`;
+    const aggregationKey = `${originalTag}_${shelf}`;
     
     if (tagShelfQuantityMap.has(aggregationKey)) {
       // Aggregate quantities
@@ -787,10 +786,10 @@ export const generateTagSummaryReport = (
     } else {
       // Create new entry
       tagShelfQuantityMap.set(aggregationKey, {
-        TAG: finalTag,
-        SHELF: finalShelf,
+        TAG: displayTag,
+        SHELF: displayShelf,
         TAG_AREA_DESCRIPTION: itemRecord?.TAG_AREA_DESCRIPTION || '',
-        TAG_SUB_AREA: `${finalTag}-${finalShelf}`, // For compatibility
+        TAG_SUB_AREA: `${originalTag}-${shelf}`, // For compatibility
         QUANTITY: quantity,
       });
     }
@@ -801,17 +800,19 @@ export const generateTagSummaryReport = (
   // Convert map to array
   const result: (TagSummaryReportItem & { SHELF: string })[] = Array.from(tagShelfQuantityMap.values());
   
-  // Sort by TAG first, then by SHELF
+  // Sort by original TAG first, then by SHELF
   result.sort((a, b) => {
-    const tagA = parseInt(a.TAG) || 0;
-    const tagB = parseInt(b.TAG) || 0;
+    // Extract original tag number from display format (e.g., "7271 TAG" -> 7271)
+    const tagA = parseInt(a.TAG.split(' ')[0]) || 0;
+    const tagB = parseInt(b.TAG.split(' ')[0]) || 0;
     
     if (tagA !== tagB) {
       return tagA - tagB;
     }
     
-    const shelfA = parseInt(a.SHELF) || 0;
-    const shelfB = parseInt(b.SHELF) || 0;
+    // Extract shelf number from display format (e.g., "Shelf 271" -> 271)
+    const shelfA = parseInt(a.SHELF.split(' ')[1]) || 0;
+    const shelfB = parseInt(b.SHELF.split(' ')[1]) || 0;
     return shelfA - shelfB;
   });
 
